@@ -11,7 +11,7 @@ port = 9999
 socket_address = (host_ip, port)
 
 # Socket Bind
-server_socket.bind(socket_address)
+server_socket.bind(('', port))
 
 # Socket Listen
 server_socket.listen(5)
