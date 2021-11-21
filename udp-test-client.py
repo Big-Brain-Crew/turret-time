@@ -1,9 +1,8 @@
 import socket
 
-
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 message = b'Connected'
-addr = ("127.0.0.1", 12000)
+addr = ("192.168.86.145", 12000)
 client_socket.sendto(message, addr)
 
 while True:
