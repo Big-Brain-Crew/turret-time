@@ -1,7 +1,14 @@
 import RPi.GPIO as GPIO
 import math
 import time
+import socket
+import asyncio
 from threading import Thread
+
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+message = b'Connected'
+addr = ("add your ip address here!", 12000)
+client_socket.sendto(message, addr)
 
 servoPIN = 23
 GPIO.setmode(GPIO.BCM)
@@ -35,18 +42,38 @@ def mapValue( value, fromLow, fromHigh, toLow, toHigh):
     return ((toHigh-toLow)*(value-fromLow) / (fromHigh - fromLow) + toLow)
 
 # sine tracking thread:  10hz frequency, 6 amplitude, 7 as the sine center.
-sine_thread = Thread(target = sine_cb,args = (15,6,7))
-sine_thread.start()
+sine_thread = Thread(target = sine_cb,args = (10,6,7))
+#sine_thread.start()
 
 # update servo's command: gpio 23, running at 10 hz
-servo_thread = Thread(target = updateServoCommand_cb, args = (p,10))
+servo_thread = Thread(target = updateServoCommand_cb, args = (p,100))
 servo_thread.start()
 
-try:
-  while True:
-      p.ChangeDutyCycle(4);
-      time.sleep(10)
+async def newUpdateMessage (update_fq):
+    print ("we be updating things")
     
-except KeyboardInterrupt:
-  p.stop()
-  GPIO.cleanup()
+
+# asyncio functions for udp comms
+async def updateMessage (update_fq):
+    while True:
+        message, address = client_socket.recvfrom(50)
+        joystick_data = message.decode('utf-8').split(", ")
+        # print("updated message:", message, "joystick_data:", joystick_data)
+        joystick_data_y = float(joystick_data[1])
+        normalized_joystick = mapValue(joystick_data_y, -1.0, 1.0, 2, 12)
+        global servo_target
+        servo_target = normalized_joystick
+        await asyncio.sleep(1/update_fq)
+
+async def main():
+    global message
+    await asyncio.gather(updateMessage(30))
+
+    
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+      
+    except KeyboardInterrupt:
+        p.stop()
+        GPIO.cleanup()
