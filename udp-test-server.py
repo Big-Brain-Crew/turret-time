@@ -21,15 +21,15 @@ print(JoyAx)
 
 
 #while True:
-message, address = server_socket.recvfrom(1024)
-print(message.decode('utf-8'))
+#message, address = server_socket.recvfrom(1024)
+#print(message.decode('utf-8'))
 
 while True:
     pygame.event.pump()
     return_message = (str(pygame.joystick.Joystick(0).get_axis(0))+", "+str(pygame.joystick.Joystick(0).get_axis(1)))
-
+    print(return_message)
     #message, address = server_socket.recvfrom(1024)
     #print(message.decode('utf-8'))
     #message = message.upper()
-    if return_message:
-        server_socket.sendto(bytes(return_message, 'utf-8'), address)
+    #if return_message:
+    #    server_socket.sendto(bytes(return_message, 'utf-8'), address)
